@@ -138,6 +138,7 @@ func publishMessage(ctx context.Context, projectID string, topicID string, messa
 	return nil
 }
 
+
 func createTopic(ctx context.Context, projectID string, topicID string) error {
 	// Create a publisher client
 	pub, err := publisher.NewPublisher(projectID)
@@ -155,3 +156,4 @@ func createTopic(ctx context.Context, projectID string, topicID string) error {
 	fmt.Printf("Topic created: %s\n", topic.ID())
 	return nil
 }
+
