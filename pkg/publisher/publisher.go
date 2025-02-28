@@ -79,3 +79,23 @@ func (p *Publisher) PublishFromFile(ctx context.Context, topicID string, filePat
 
 	return p.Publish(ctx, topicID, data)
 }
+
+func (p *Publisher) CreateTopic(ctx context.Context, topicID string) (*pubsub.Topic, error) {
+	// Check if the topic already exists
+	topic := p.client.Topic(topicID)
+	exists, err := topic.Exists(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if topic exists: %v", err)
+	}
+	if exists {
+		return nil, fmt.Errorf("topic %s already exists", topicID)
+	}
+
+	// Create the topic
+	topic, err = p.client.CreateTopic(ctx, topicID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create topic: %v", err)
+	}
+
+	return topic, nil
+}

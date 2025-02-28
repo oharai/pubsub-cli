@@ -21,7 +21,7 @@ func main() {
 				Subcommands: []*cli.Command{
 					{
 						Name:  "topic",
-						Usage: "Topic commands",
+						Usage: "List topics",
 						Flags: []cli.Flag{
 							&cli.StringFlag{
 								Name:     "project",
@@ -32,6 +32,27 @@ func main() {
 						Action: func(c *cli.Context) error {
 							projectID := c.String("project")
 							return listTopics(c.Context, projectID)
+						},
+					},
+					{
+						Name:  "create-topic",
+						Usage: "Create a new topic",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "project",
+								Usage:    "Google Cloud project ID",
+								Required: true,
+							},
+							&cli.StringFlag{
+								Name:     "topic",
+								Usage:    "Topic ID to create",
+								Required: true,
+							},
+						},
+						Action: func(c *cli.Context) error {
+							projectID := c.String("project")
+							topicID := c.String("topic")
+							return createTopic(c.Context, projectID, topicID)
 						},
 					},
 					{
@@ -114,5 +135,23 @@ func publishMessage(ctx context.Context, projectID string, topicID string, messa
 	}
 
 	fmt.Printf("Message published to topic %s with ID: %s\n", topicID, msgID)
+	return nil
+}
+
+func createTopic(ctx context.Context, projectID string, topicID string) error {
+	// Create a publisher client
+	pub, err := publisher.NewPublisher(projectID)
+	if err != nil {
+		return fmt.Errorf("failed to create publisher: %v", err)
+	}
+	defer pub.Close()
+
+	// Create the topic
+	topic, err := pub.CreateTopic(ctx, topicID)
+	if err != nil {
+		return fmt.Errorf("failed to create topic: %v", err)
+	}
+
+	fmt.Printf("Topic created: %s\n", topic.ID())
 	return nil
 }
