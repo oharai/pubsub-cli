@@ -1,8 +1,6 @@
 module github.com/GarupanOjisan/pubsub-cli
 
-go 1.23.0
-
-toolchain go1.23.4
+go 1.19
 
 require (
 	cloud.google.com/go/pubsub v1.47.0
