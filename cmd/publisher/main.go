@@ -34,6 +34,33 @@ func main() {
 							return listTopics(c.Context, projectID)
 						},
 					},
+					{
+						Name:  "publish",
+						Usage: "Publish a message to a topic",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "project",
+								Usage:    "Google Cloud project ID",
+								Required: true,
+							},
+							&cli.StringFlag{
+								Name:     "topic",
+								Usage:    "Topic ID to publish to",
+								Required: true,
+							},
+							&cli.StringFlag{
+								Name:     "message-file",
+								Usage:    "Path to the file containing the message to publish",
+								Required: true,
+							},
+						},
+						Action: func(c *cli.Context) error {
+							projectID := c.String("project")
+							topicID := c.String("topic")
+							messageFile := c.String("message-file")
+							return publishMessage(c.Context, projectID, topicID, messageFile)
+						},
+					},
 				},
 			},
 		},
@@ -69,5 +96,23 @@ func listTopics(ctx context.Context, projectID string) error {
 		fmt.Println("No topics found in this project.")
 	}
 
+	return nil
+}
+
+func publishMessage(ctx context.Context, projectID string, topicID string, messageFile string) error {
+	// Create a publisher client
+	pub, err := publisher.NewPublisher(projectID)
+	if err != nil {
+		return fmt.Errorf("failed to create publisher: %v", err)
+	}
+	defer pub.Close()
+
+	// Publish the message from the file
+	msgID, err := pub.PublishFromFile(ctx, topicID, messageFile)
+	if err != nil {
+		return fmt.Errorf("failed to publish message: %v", err)
+	}
+
+	fmt.Printf("Message published to topic %s with ID: %s\n", topicID, msgID)
 	return nil
 }

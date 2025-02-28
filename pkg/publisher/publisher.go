@@ -3,6 +3,7 @@ package publisher
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/iterator"
@@ -41,4 +42,40 @@ func (p *Publisher) ListTopics(ctx context.Context) ([]*pubsub.Topic, error) {
 		topics = append(topics, topic)
 	}
 	return topics, nil
+}
+
+func (p *Publisher) Publish(ctx context.Context, topicID string, messageData []byte) (string, error) {
+	topic := p.client.Topic(topicID)
+
+	// Check if the topic exists
+	exists, err := topic.Exists(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if topic exists: %v", err)
+	}
+	if !exists {
+		return "", fmt.Errorf("topic %s does not exist", topicID)
+	}
+
+	// Publish the message
+	result := topic.Publish(ctx, &pubsub.Message{
+		Data: messageData,
+	})
+
+	// Get the message ID
+	msgID, err := result.Get(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to publish message: %v", err)
+	}
+
+	return msgID, nil
+}
+
+func (p *Publisher) PublishFromFile(ctx context.Context, topicID string, filePath string) (string, error) {
+	// Read message data from file
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read message file: %v", err)
+	}
+
+	return p.Publish(ctx, topicID, data)
 }
