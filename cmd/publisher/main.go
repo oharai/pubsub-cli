@@ -70,15 +70,15 @@ func main() {
 								Required: true,
 							},
 							&cli.StringFlag{
-								Name:     "message-file",
-								Usage:    "Path to the file containing the message to publish",
+								Name:     "message-payload-file",
+								Usage:    "Path to the file containing the message payload to publish",
 								Required: true,
 							},
 						},
 						Action: func(c *cli.Context) error {
 							projectID := c.String("project")
 							topicID := c.String("topic")
-							messageFile := c.String("message-file")
+							messageFile := c.String("message-payload-file")
 							return publishMessage(c.Context, projectID, topicID, messageFile)
 						},
 					},
@@ -138,7 +138,6 @@ func publishMessage(ctx context.Context, projectID string, topicID string, messa
 	return nil
 }
 
-
 func createTopic(ctx context.Context, projectID string, topicID string) error {
 	// Create a publisher client
 	pub, err := publisher.NewPublisher(projectID)
@@ -156,4 +155,3 @@ func createTopic(ctx context.Context, projectID string, topicID string) error {
 	fmt.Printf("Topic created: %s\n", topic.ID())
 	return nil
 }
-
