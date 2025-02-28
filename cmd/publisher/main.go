@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
+	"github.com/GarupanOjisan/pubsub-cli/pkg/publisher"
 	"github.com/urfave/cli/v2"
 )
 
@@ -44,5 +46,28 @@ func main() {
 }
 
 func listTopics(ctx context.Context, projectID string) error {
+	// Create a publisher client
+	pub, err := publisher.NewPublisher(projectID)
+	if err != nil {
+		return fmt.Errorf("failed to create publisher: %v", err)
+	}
+	defer pub.Close()
+
+	// List all topics in the project
+	fmt.Printf("Topics in project %s:\n", projectID)
+	topics, err := pub.ListTopics(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to list topics: %v", err)
+	}
+
+	// Print the topics
+	for _, topic := range topics {
+		fmt.Printf("- %s\n", topic.ID())
+	}
+
+	if len(topics) == 0 {
+		fmt.Println("No topics found in this project.")
+	}
+
 	return nil
 }
