@@ -48,6 +48,33 @@ func main() {
 							return subscribeToSubscription(c.Context, projectID, subscriptionID, shouldAck)
 						},
 					},
+					{
+						Name:  "create",
+						Usage: "Create a new subscription for a topic",
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "project",
+								Usage:    "Google Cloud project ID",
+								Required: true,
+							},
+							&cli.StringFlag{
+								Name:     "topic",
+								Usage:    "Topic ID to create subscription for",
+								Required: true,
+							},
+							&cli.StringFlag{
+								Name:     "subscription",
+								Usage:    "Subscription ID to create",
+								Required: true,
+							},
+						},
+						Action: func(c *cli.Context) error {
+							projectID := c.String("project")
+							topicID := c.String("topic")
+							subscriptionID := c.String("subscription")
+							return createSubscription(c.Context, projectID, topicID, subscriptionID)
+						},
+					},
 				},
 			},
 		},
@@ -82,4 +109,16 @@ func subscribeToSubscription(ctx context.Context, projectID string, subscription
 
 	// Subscribe to the subscription
 	return sub.Subscribe(ctx, subscriptionID, shouldAck, os.Stdout)
+}
+
+func createSubscription(ctx context.Context, projectID string, topicID string, subscriptionID string) error {
+	// Create a subscriber client
+	sub, err := subscriber.NewSubscriber(projectID)
+	if err != nil {
+		return fmt.Errorf("failed to create subscriber: %v", err)
+	}
+	defer sub.Close()
+
+	// Create the subscription
+	return sub.CreateSubscription(ctx, topicID, subscriptionID, os.Stdout)
 }

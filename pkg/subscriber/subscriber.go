@@ -28,6 +28,39 @@ func (s *Subscriber) Close() error {
 	return s.client.Close()
 }
 
+func (s *Subscriber) CreateSubscription(ctx context.Context, topicID string, subscriptionID string, output io.Writer) error {
+	// Get the topic
+	topic := s.client.Topic(topicID)
+	exists, err := topic.Exists(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if topic exists: %v", err)
+	}
+	if !exists {
+		return fmt.Errorf("topic %s does not exist", topicID)
+	}
+
+	// Check if subscription already exists
+	sub := s.client.Subscription(subscriptionID)
+	exists, err = sub.Exists(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if subscription exists: %v", err)
+	}
+	if exists {
+		return fmt.Errorf("subscription %s already exists", subscriptionID)
+	}
+
+	// Create the subscription
+	_, err = s.client.CreateSubscription(ctx, subscriptionID, pubsub.SubscriptionConfig{
+		Topic: topic,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create subscription: %v", err)
+	}
+
+	fmt.Fprintf(output, "Subscription %s created for topic %s\n", subscriptionID, topicID)
+	return nil
+}
+
 func (s *Subscriber) Subscribe(ctx context.Context, subscriptionID string, shouldAck bool, output io.Writer) error {
 	// Check if the subscription exists
 	sub := s.client.Subscription(subscriptionID)
